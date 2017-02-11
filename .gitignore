@@ -1,4 +1,15 @@
 *.class
+*.csv
+*.gog
+doc/
+conf/
+_tmp/
+log/
+sys/
+*.ico
+*.zip
+src/
+
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
