@@ -11,7 +11,7 @@ sys/
 src/
 data/record/
 data/state/
-strategy/sample/
+data/strategy/sample/
 
 
 # Mobile Tools for Java (J2ME)
