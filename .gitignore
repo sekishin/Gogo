@@ -9,6 +9,9 @@ sys/
 *.ico
 *.zip
 src/
+data/record/
+data/state/
+strategy/sample/
 
 
 # Mobile Tools for Java (J2ME)
