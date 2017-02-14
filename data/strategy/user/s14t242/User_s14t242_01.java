@@ -107,6 +107,7 @@ public class User_s14t242_01 extends GogoCompSub {
 				// 自分の三連を作る → 400;
 				if ( check_run(cell, mycolor, i, j, 3) ) { values[i][j] = 400; }
 				// 三々の禁じ手は打たない → -1
+				if ( check_33(cell, mycolor, i, j) ) { values[i][j] = -69; continue; }
 				// 相手の石を取る → 300;
 				if ( check_rem(cell, mycolor, i, j) ) { values[i][j] = 300; }
 				// 自分の石を守る → 200;
@@ -121,6 +122,84 @@ public class User_s14t242_01 extends GogoCompSub {
 				// 三をどちらで止めるか
 			}
 		}
+		show_value();
+	}
+
+	//----------------------------------------------------------------
+	//  禁じ手33の判定
+	//----------------------------------------------------------------
+	boolean check_33(int[][] board, int color, int i, int j) {
+		return check_33_L(board, color, i, j) || check_33_T(board, color, i, j) || check_33_X(board, color, i, j);
+	}
+
+	boolean check_33_L(int[][] board, int color, int i, int j) {
+		return check_run_num(board, color, i, j, 3) == 2;
+	}
+
+	boolean check_33_T(int[][] board, int color, int i, int j) {
+		/*
+			○●○	  ○
+			  ○  	  ○
+			  ○  	○●○
+		*/
+		if ( check_run_dir(board, color, i, j, 0, -1, 2) && check_run_dir(board, color, i, j, 0, +1, 2) ) {
+			if ( check_run_dir(board, color, i, j, -1, 0, 3) ) { return true; }
+			else if ( check_run_dir(board, color, i, j, +1, 0, 3) ) { return true; }
+		}
+		/*
+			    ○	○
+			○○●	●○○
+			    ○	○
+		*/
+		if ( check_run_dir(board, color, i, j, -1, 0, 2) && check_run_dir(board, color, i, j, +1, 0, 2) ) {
+			if ( check_run_dir(board, color, i, j, 0, -1, 3) ) { return true; }
+			else if ( check_run_dir(board, color, i, j, 0, +1, 3) ) { return true; }
+		}
+		/*
+			  ○    	      ○
+			    ●  	○  ○
+			  ○  ○	  ●
+			○      	    ○
+		*/
+		if ( check_run_dir(board, color, i, j, -1, -1, 2) && check_run_dir(board, color, i, j, +1, +1, 2) ) {
+			if ( check_run_dir(board, color, i, j, +1, -1, 3) ) { return true; }
+			else if ( check_run_dir(board, color, i, j, -1, +1, 3) ) { return true; }
+		}
+		/*
+			    ○  	○
+			  ●    	  ○  ○
+			○  ○  	    ●
+			      ○	  ○
+		*/
+		if ( check_run_dir(board, color, i, j, -1, +1, 2) && check_run_dir(board, color, i, j, +1, -1, 2) ) {
+			if ( check_run_dir(board, color, i, j, +1, +1, 3) ) { return true; }
+			else if ( check_run_dir(board, color, i, j, -1, -1, 3) ) { return true; }
+		}
+		return false;
+	}
+
+	boolean check_33_X(int[][] board, int color, int i, int j) {
+		/*
+			○  ○
+			  ●
+			○  ○
+		*/
+		if ( check_run_dir(board, color, i, j, -1, -1, 2) && check_run_dir(board, color, i, j, +1, +1, 2) ) {
+			if ( check_run_dir(board, color, i, j, -1, +1, 2) && check_run_dir(board, color, i, j, +1, -1, 2) ) {
+				return true;
+			}
+		}
+		/*
+			  ○
+			○●○
+			  ○
+		*/
+		if ( check_run_dir(board, color, i, j, 0, -1, 2) && check_run_dir(board, color, i, j, 0, +1, 2) ) {
+			if ( check_run_dir(board, color, i, j, -1, 0, 2) && check_run_dir(board, color, i, j, +1, 0, 2) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	//----------------------------------------------------------------
@@ -138,16 +217,41 @@ public class User_s14t242_01 extends GogoCompSub {
 	}
 
 	//----------------------------------------------------------------
-	//  連の方向チェック(止連・端連・長連も含む、飛びは無視)
+	//  連の個数チェック
+	//----------------------------------------------------------------
+	int check_run_num(int[][] board, int color, int i, int j, int len) {
+		int num = 0;
+		for ( int dx = -1; dx <= 1; dx++ ) {
+			for ( int dy = -1; dy <= 1; dy++ ) {
+				if ( dx == 0 && dy == 0 ) { continue; }
+				if ( check_run_dir(board, color, i, j, dx, dy, len) ) { num++; }
+			}
+		}
+		return num;
+	}
+
+	//----------------------------------------------------------------
+	//  連の方向チェック(飛びは無視)
 	//----------------------------------------------------------------
 
 	boolean check_run_dir(int[][] board, int color, int i, int j, int dx, int dy, int len) {
+		int x = i+dx*-1;
+		int y = j+dx*-1;
+		if ( x < 0 && y < 0 && x >= size && y >= size ) {
+			if ( board[x][y] != 0 ) { return false; }
+		}
+
 		for ( int k = 1; k < len; k++ ) {
-			int x = i+k*dx;
-			int y = j+k*dy;
+			x = i+k*dx;
+			y = j+k*dy;
 			if ( x < 0 || y < 0 || x >= size || y >= size ) { return false; }
 			if ( board[i+k*dx][j+k*dy] != color ) { return false; }
 		}
+
+		x = i+len*dx;
+		y = j+len*dy;
+		if ( x < 0 || y < 0 || x >= size || y >= size ) { return true; }
+		if ( board[x][y] != 0 ) return false;
 		return true;
 	}
 
@@ -180,6 +284,20 @@ public class User_s14t242_01 extends GogoCompSub {
 		}
 		return true;
 	}
+
+	//----------------------------------------------------------------
+	//  評価盤面の表示
+	//----------------------------------------------------------------
+	public void show_value() {
+		for ( int i = 0; i < size; i++ ) {
+			for ( int j = 0; j < size; j++ ) {
+				System.out.printf("%3d ", values[j][i]);
+			}
+			System.out.println("");
+		}
+		System.out.println("");
+	}
+
 	//----------------------------------------------------------------
 	//  着手の決定
 	//----------------------------------------------------------------
