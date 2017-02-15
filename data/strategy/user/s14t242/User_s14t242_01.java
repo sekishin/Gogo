@@ -143,8 +143,12 @@ public class User_s14t242_01 extends GogoCompSub {
 			  ○  	○●○
 		*/
 		if ( check_run_dir(board, color, i, j, 0, -1, 2) && check_run_dir(board, color, i, j, 0, +1, 2) ) {
+			if ( check_run_dir(board, color, i, j, -1, -1, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, +1, 3) ) { return true; }
 			if ( check_run_dir(board, color, i, j, -1, 0, 3) ) { return true; }
-			else if ( check_run_dir(board, color, i, j, +1, 0, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, 0, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, -1, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, +1, 3) ) { return true; }
 		}
 		/*
 			    ○	○
@@ -152,8 +156,12 @@ public class User_s14t242_01 extends GogoCompSub {
 			    ○	○
 		*/
 		if ( check_run_dir(board, color, i, j, -1, 0, 2) && check_run_dir(board, color, i, j, +1, 0, 2) ) {
+			if ( check_run_dir(board, color, i, j, -1, -1, 3) ) { return true; }
 			if ( check_run_dir(board, color, i, j, 0, -1, 3) ) { return true; }
-			else if ( check_run_dir(board, color, i, j, 0, +1, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, -1, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, +1, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, 0, +1, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, +1, 3) ) { return true; }
 		}
 		/*
 			  ○    	      ○
@@ -162,8 +170,12 @@ public class User_s14t242_01 extends GogoCompSub {
 			○      	    ○
 		*/
 		if ( check_run_dir(board, color, i, j, -1, -1, 2) && check_run_dir(board, color, i, j, +1, +1, 2) ) {
+			if ( check_run_dir(board, color, i, j, +1, 0, 3) ) { return true; }
 			if ( check_run_dir(board, color, i, j, +1, -1, 3) ) { return true; }
-			else if ( check_run_dir(board, color, i, j, -1, +1, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, 0, -1, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, 0, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, +1, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, 0, +1, 3) ) { return true; }
 		}
 		/*
 			    ○  	○
@@ -172,34 +184,52 @@ public class User_s14t242_01 extends GogoCompSub {
 			      ○	  ○
 		*/
 		if ( check_run_dir(board, color, i, j, -1, +1, 2) && check_run_dir(board, color, i, j, +1, -1, 2) ) {
+			if ( check_run_dir(board, color, i, j, 0, -1, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, -1, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, 0, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, 0, +1, 3) ) { return true; }
 			if ( check_run_dir(board, color, i, j, +1, +1, 3) ) { return true; }
-			else if ( check_run_dir(board, color, i, j, -1, -1, 3) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, 0, 3) ) { return true; }
 		}
 		return false;
 	}
 
 	boolean check_33_X(int[][] board, int color, int i, int j) {
+		int count = 0;
 		/*
-			○  ○
+			○
 			  ●
-			○  ○
+			    ○
 		*/
 		if ( check_run_dir(board, color, i, j, -1, -1, 2) && check_run_dir(board, color, i, j, +1, +1, 2) ) {
-			if ( check_run_dir(board, color, i, j, -1, +1, 2) && check_run_dir(board, color, i, j, +1, -1, 2) ) {
-				return true;
-			}
+			count++;
+		}
+		/*
+			    ○
+			  ●
+			○
+		*/
+		if ( check_run_dir(board, color, i, j, -1, +1, 2) && check_run_dir(board, color, i, j, +1, -1, 2) ) {
+			count++;
+		}
+		/*
+			
+			○●○
+			
+		*/
+		if ( check_run_dir(board, color, i, j, 0, -1, 2) && check_run_dir(board, color, i, j, 0, +1, 2) ) {
+			count++;
 		}
 		/*
 			  ○
-			○●○
+			  ●
 			  ○
 		*/
-		if ( check_run_dir(board, color, i, j, 0, -1, 2) && check_run_dir(board, color, i, j, 0, +1, 2) ) {
-			if ( check_run_dir(board, color, i, j, -1, 0, 2) && check_run_dir(board, color, i, j, +1, 0, 2) ) {
-				return true;
-			}
+		if ( check_run_dir(board, color, i, j, -1, 0, 2) && check_run_dir(board, color, i, j, +1, 0, 2) ) {
+			count++;
 		}
-		return false;
+
+		return count == 2;
 	}
 
 	//----------------------------------------------------------------
