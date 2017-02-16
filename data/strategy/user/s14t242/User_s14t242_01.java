@@ -71,6 +71,8 @@ public class User_s14t242_01 extends GogoCompSub {
 		mycolor = role;
 		int gettenStones = get_enemystone(prev);	// 取られて石の個数
 		int stolenStones = get_mystone(prev);	// 取った石の個数
+		GogoHand tmpHand = new GogoHand();
+		GameState tmpState;
 
 		System.out.println(gettenStones + " " + stolenStones);
 		//--  各マスの評価値
@@ -80,43 +82,53 @@ public class User_s14t242_01 extends GogoCompSub {
 				if (values[i][j] == -2) { continue; }
 				//--  適当な評価の例
 				// 相手の五連を崩す → 1000;
+				if ( check_run_5(cell, mycolor*-1) ) {
+					if ( check_rem(cell, mycolor*-1, i, j) ) {
+						tmpHand.set_hand(i, j);
+						tmpState = prev.test_hand(tmpHand);
+						if ( ! check_run_5(tmpState.board.get_cell_all(), mycolor*-1) ) {
+							values[i][j] = 1000;
+							continue;
+						}
+					}
+				}
 				// 勝利(五取) → 950;
-				if ( gettenStones == 8 && check_rem(cell, mycolor, i, j) ) {
+				if ( gettenStones == 8 && check_rem(cell, mycolor*-1, i, j) ) {
 					values[i][j] = 950;
 					continue;
 				}
 				// 勝利(五連) → 900;
-				if ( check_run(cell, mycolor, i, j, 5) ) {
+				if ( check_run(cell, mycolor, i, j, 5) || check_run2(cell, mycolor, i, j, 5) ) {
 					values[i][j] = 900;
 					continue;
 				}
 				// 敗北阻止(五取) → 850;
-				if ( stolenStones == 8 && check_rem(cell, mycolor*-1, i, j) ) {
+				if ( stolenStones == 8 && check_rem(cell, mycolor, i, j) ) {
 					values[i][j] = 850;
 					continue;
 				}
 				// 敗北阻止(五連) → 800;
-				if ( check_run(cell, mycolor*-1, i, j, 5) ) {
+				if ( check_run(cell, mycolor*-1, i, j, 5) || check_run2(cell, mycolor*-1, i, j, 5) ) {
 					values[i][j] = 800;
 					continue;
 				}
 				// 相手の四連を止める → 700;
-				if ( check_run(cell, mycolor*-1, i, j, 4) ) {
+				if ( check_run(cell, mycolor*-1, i, j, 4) || check_run2(cell, mycolor*-1, i, j, 4) ) {
 					values[i][j] = 700;
 					continue;
 				}
 				// 自分の四連を作る → 600;
-				if ( check_run(cell, mycolor, i, j, 4) ) {
+				if ( check_run(cell, mycolor, i, j, 4)  || check_run2(cell, mycolor, i, j, 4)) {
 					values[i][j] = 600;
 					continue;
 				}
 				// 相手の三連を防ぐ → 500;
-				if ( check_run(cell, mycolor*-1, i, j, 3) ) {
+				if ( check_run(cell, mycolor*-1, i, j, 3)  || check_run2(cell, mycolor*-1, i, j, 3)) {
 					values[i][j] = 500;
 					continue;
 				}
 				// 自分の三連を作る → 400;
-				if ( check_run(cell, mycolor, i, j, 3) ) { values[i][j] = 400; }
+				if ( check_run(cell, mycolor, i, j, 3) || check_run2(cell, mycolor, i, j, 3) ) { values[i][j] = 400; }
 				// 三々の禁じ手は打たない → -1
 				if ( check_33(cell, mycolor, i, j) ) { values[i][j] = -69; continue; }
 				// 相手の石を取る → 300;
@@ -127,7 +139,7 @@ public class User_s14t242_01 extends GogoCompSub {
 				if (values[i][j] == 0) {
 					int aaa = (int) Math.round(Math.random() * 15);
 					if (values[i][j] < aaa) { values[i][j] = aaa; }
-					values[i][j] = 5;
+					//values[i][j] = 5
 				}
 				// 四々や四三の判定
 				// 飛び三や飛び四の判定
@@ -138,7 +150,7 @@ public class User_s14t242_01 extends GogoCompSub {
 	}
 
 	//----------------------------------------------------------------
-	//  禁じ手33の判定
+	//  禁じ手の判定
 	//----------------------------------------------------------------
 	boolean check_taboo(int[][] board, int color, int i, int j) {
 		return check_33(board, color, i, j);
@@ -212,23 +224,22 @@ public class User_s14t242_01 extends GogoCompSub {
 	boolean check_33_X(int[][] board, int color, int i, int j) {
 		int count = 0;
 
-		if ( check_run_dir(board, color, i, j, -1, -1, 2) && check_run_dir(board, color, i, j, +1, +1, 2) ) {
-			count++;
-		}
-
-		if ( check_run_dir(board, color, i, j, -1, +1, 2) && check_run_dir(board, color, i, j, +1, -1, 2) ) {
-			count++;
-		}
-
-		if ( check_run_dir(board, color, i, j, 0, -1, 2) && check_run_dir(board, color, i, j, 0, +1, 2) ) {
-			count++;
-		}
-
-		if ( check_run_dir(board, color, i, j, -1, 0, 2) && check_run_dir(board, color, i, j, +1, 0, 2) ) {
-			count++;
-		}
-
+		if ( check_run_dir(board, color, i, j, -1, -1, 2) && check_run_dir(board, color, i, j, +1, +1, 2) ) { count++; }
+		if ( check_run_dir(board, color, i, j, -1, +1, 2) && check_run_dir(board, color, i, j, +1, -1, 2) ) { count++; }
+		if ( check_run_dir(board, color, i, j, 0, -1, 2) && check_run_dir(board, color, i, j, 0, +1, 2) ) { count++; }
+		if ( check_run_dir(board, color, i, j, -1, 0, 2) && check_run_dir(board, color, i, j, +1, 0, 2) ) { count++; }
 		return count >= 2;
+	}
+	//----------------------------------------------------------------
+	//  五連があるか確認
+	//----------------------------------------------------------------
+	boolean check_run_5(int[][] board, int color) {
+		for ( int i = 0; i < size; i++) {
+			for ( int j = 0; j < size; j++ ) {
+				if ( check_run(board, color, i, j, 5) ) { return true; }
+			}
+		}
+		return false;
 	}
 
 	//----------------------------------------------------------------
@@ -246,7 +257,7 @@ public class User_s14t242_01 extends GogoCompSub {
 	}
 
 	//----------------------------------------------------------------
-	//  連の方向チェック(止連・端連・長連も含む、飛びは無視)
+	//  連の方向チェック
 	//----------------------------------------------------------------
 	boolean check_run_dir(int[][] board, int color, int i, int j, int dx, int dy, int len) {
 		// 5連未満の連なら開始地点側で止められているか判定
@@ -256,7 +267,7 @@ public class User_s14t242_01 extends GogoCompSub {
 			// 盤外判定
 			if ( x< 0 || y < 0 || x >= size || y >= size ) { return false; }
 			// 非空マス判定
-			if ( x >= 0 && y >= 0 && x < size && y < size && board[x][y] == -color) { return false; }
+			if ( board[x][y] == -color) { return false; }
 		}
 		// 連判定
 		for ( int k = 1; k < len; k++ ) {
@@ -270,6 +281,7 @@ public class User_s14t242_01 extends GogoCompSub {
 		// 終了地点の次を判定
 		x = i + len * dx;
 		y = j + len * dy;
+		// 次の地点が盤内か判定
 		if ( x < 0 && y < 0 && x >= size && y >= size ) {
 			// 5連未満で止められているか
 			if ( board[x][y] == -color && len < 5 ) { return false; }
@@ -279,7 +291,44 @@ public class User_s14t242_01 extends GogoCompSub {
 		return true;
 	}
 
+	//----------------------------------------------------------------
+	//  間において連になるか確認
+	//----------------------------------------------------------------
+	boolean check_run2(int[][] board, int color, int i, int j, int len) {
+		if ( check_run2_dir(board, color, i, j, 0, -1, len) ) { return true; }
+		if ( check_run2_dir(board, color, i, j, -1, -1, len) ) { return true; }
+		if ( check_run2_dir(board, color, i, j, -1, 0, len) ) { return true; }
+		if ( check_run2_dir(board, color, i, j, -1, +1, len) ) { return true; }
+		return false;
+	}
 
+	boolean check_run2_dir(int[][] board, int color, int i, int j, int dx, int dy, int len) {
+		int count = 1;
+		int x, y;
+		// 進行方向側を確認
+		for ( int k = 1; k < len; k++ ) {
+			x = i + k * dx;
+			y = j + k * dy;
+			// 盤外判定
+			if ( x < 0 || y < 0 || x >= size || y >= size ) { break; }
+			// 自分の石があるか確認
+			if ( board[x][y] == color ) { count++; }
+			// 自分の石がないなら脱出
+			else { break; }
+		}
+		// 進行方向とは逆方向を確認
+		for ( int k = 1; k < len; k++ ) {
+			x = i - k * dx;
+			y = j - k * dy;
+			// 盤外判定
+			if ( x < 0 || y < 0 || x >= size || y >= size ) { break; }
+			// 自分の石があるか確認
+			if ( board[x][y] == color ) { count++; }
+			// 自分の石がないなら脱出
+			else { break; }
+		}
+		return count == len;
+	}
 	//----------------------------------------------------------------
 	//  取の全周チェック(ダブルの判定は無し)
 	//----------------------------------------------------------------
@@ -337,6 +386,13 @@ public class User_s14t242_01 extends GogoCompSub {
 				if (value < values[i][j]) {
 					hand.set_hand(i, j);
 					value = values[i][j];
+				}
+				if ( value == values[i][j] ) {
+					int aaa = (int) Math.round(Math.random() * 100);
+					if ( aaa % 2 == 0 ) {
+						hand.set_hand(i, j);
+						value = values[i][j];
+					}
 				}
 			}
 		}
