@@ -83,7 +83,7 @@ public class User_s14t242_01 extends GogoCompSub {
 				//--  適当な評価の例
 				// 三々の禁じ手は打たない → -1
 				if ( check_33(cell, mycolor, i, j) ) {
-					values[i][j] = -69;
+					values[i][j] = -1;
 					continue;
 				}
 				// 相手の五連を崩す → 1000;
@@ -103,46 +103,62 @@ public class User_s14t242_01 extends GogoCompSub {
 					continue;
 				}
 				// 勝利(五連) → 900;
-				if ( check_run(cell, mycolor, i, j, 5) || check_run2(cell, mycolor, i, j, 5) ) {
+				if ( check_run(cell, mycolor, i, j, 5, false) || check_run2(cell, mycolor, i, j, 5, false) ) {
 					values[i][j] = 900;
 					continue;
 				}
 				// 敗北阻止(五取) → 850;
-				if ( stolenStones == 8 && check_rem(cell, mycolor, i, j) ) {
-					values[i][j] = 850;
-					continue;
+				if ( stolenStones == 8 ) {
+					tmpHand.set_hand(i, j);
+					tmpState = prev.test_hand(tmpHand);
+					if ( ! check_rem_all(tmpState.board.get_cell_all(), mycolor) ) {
+						values[i][j] = 850;
+						continue;
+					}
 				}
 				// 敗北阻止(五連) → 800;
-				if ( check_run(cell, mycolor*-1, i, j, 5) || check_run2(cell, mycolor*-1, i, j, 5) ) {
+				if ( check_run(cell, mycolor*-1, i, j, 5, false) || check_run2(cell, mycolor*-1, i, j, 5, false) ) {
 					values[i][j] = 800;
 					continue;
 				}
 				// 相手の四連を止める → 700;
-				if ( check_run(cell, mycolor*-1, i, j, 4) || check_run2(cell, mycolor*-1, i, j, 4) ) {
+				if ( check_run(cell, mycolor*-1, i, j, 4, true) || check_run2(cell, mycolor*-1, i, j, 4, true) ) {
 					values[i][j] = 700;
 					continue;
 				}
 				// 自分の四連を作る → 600;
-				if ( check_run(cell, mycolor, i, j, 4)  || check_run2(cell, mycolor, i, j, 4)) {
+				if ( check_run(cell, mycolor, i, j, 4, true)  || check_run2(cell, mycolor, i, j, 4, true) ) {
 					values[i][j] = 600;
 					continue;
 				}
-				// 相手の三連を防ぐ → 500;
-				if ( check_run(cell, mycolor*-1, i, j, 3)  || check_run2(cell, mycolor*-1, i, j, 3)) {
-					values[i][j] = 500;
+				// 相手の三連を防ぐ → 400;
+				if ( check_run(cell, mycolor*-1, i, j, 3, true)  || check_run2(cell, mycolor*-1, i, j, 3, true)) {
+					values[i][j] = 400;
 					continue;
 				}
-				// 自分の三連を作る → 400;
-				if ( check_run(cell, mycolor, i, j, 3) || check_run2(cell, mycolor, i, j, 3) ) { values[i][j] = 400; }
-				// 相手の石を取る → 300;
-				if ( check_rem(cell, mycolor, i, j) ) { values[i][j] = 500; }
-				// 自分の石を守る → 200;
-				if ( check_rem(cell, mycolor*-1, i, j) ) { values[i][j] = 500; }
+				// 自分の三連を作る → 450;
+				if ( check_run(cell, mycolor, i, j, 3, true) || check_run2(cell, mycolor, i, j, 3, true) ) {
+					values[i][j] = 450;
+				}
+				// 相手の石を取る → 550;
+				if ( check_rem(cell, mycolor*-1, i, j) ) {
+					values[i][j] = 550;
+				}
+				// 自分の石を守る → 650;
+				if ( check_rem_all(cell, mycolor) ) {
+					tmpHand.set_hand(i, j);
+					tmpState = prev.test_hand(tmpHand);
+					if ( ! check_rem_all(tmpState.board.get_cell_all(), mycolor) ) {
+						values[i][j] = 650;
+						continue;
+					}
+				}
 				// ランダム
 				if (values[i][j] == 0) {
-					int aaa = (int) Math.round(Math.random() * 15);
-					if (values[i][j] < aaa) { values[i][j] = aaa; }
-					//values[i][j] = 5
+					values[i][j] = get_weight_value(i, j);
+					if ( check_run2(cell, mycolor, i, j, 2, true) ) {
+						values[i][j] = 2;
+					}
 				}
 				// 四々や四三の判定
 				// 飛び三や飛び四の判定
@@ -170,13 +186,13 @@ public class User_s14t242_01 extends GogoCompSub {
 		for ( int dx1 = -1; dx1 <= +1; dx1++ ) {
 			for ( int dy1 = -1; dy1 <= +1; dy1++ ) {
 				if ( dx1 == 0 && dy1 == 0 ) { continue; }
-				if ( ! check_run_dir(board, color, i, j, dx1, dy1, 3) ) { continue; }
+				if ( ! check_run_dir(board, color, i, j, dx1, dy1, 3, true) ) { continue; }
 				for ( int dx2 = -1; dx2 <= +1; dx2++ ) {
 					for ( int dy2 = -1; dy2 <= +1; dy2++ ) {
 						if ( dx2 == 0 && dy2 == 0 ) { continue; }
 						if ( dx1 == dx2 && dy1 == dy2 ) { continue; }
 						if ( dx1 == -dx2 && dy1 == -dy2 ) { continue; }
-						if ( check_run_dir(board, color, i, j, dx2, dy2, 3) ) { return true; }
+						if ( check_run_dir(board, color, i, j, dx2, dy2, 3, true) ) { return true; }
 					}
 				}
 			}
@@ -186,40 +202,40 @@ public class User_s14t242_01 extends GogoCompSub {
 
 	boolean check_33_T(int[][] board, int color, int i, int j) {
 
-		if ( check_run_dir(board, color, i, j, 0, -1, 2) && check_run_dir(board, color, i, j, 0, +1, 2) ) {
-			if ( check_run_dir(board, color, i, j, -1, -1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, -1, +1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, -1, 0, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, +1, 0, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, +1, -1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, +1, +1, 3) ) { return true; }
+		if ( check_run_dir(board, color, i, j, 0, -1, 2, true) && check_run_dir(board, color, i, j, 0, +1, 2, true) ) {
+			if ( check_run_dir(board, color, i, j, -1, -1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, +1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, 0, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, 0, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, -1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, +1, 3, true) ) { return true; }
 		}
 
-		if ( check_run_dir(board, color, i, j, -1, 0, 2) && check_run_dir(board, color, i, j, +1, 0, 2) ) {
-			if ( check_run_dir(board, color, i, j, -1, -1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, 0, -1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, +1, -1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, -1, +1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, 0, +1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, +1, +1, 3) ) { return true; }
+		if ( check_run_dir(board, color, i, j, -1, 0, 2, true) && check_run_dir(board, color, i, j, +1, 0, 2, true) ) {
+			if ( check_run_dir(board, color, i, j, -1, -1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, 0, -1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, -1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, +1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, 0, +1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, +1, 3, true) ) { return true; }
 		}
 
-		if ( check_run_dir(board, color, i, j, -1, -1, 2) && check_run_dir(board, color, i, j, +1, +1, 2) ) {
-			if ( check_run_dir(board, color, i, j, +1, 0, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, +1, -1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, 0, -1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, -1, 0, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, -1, +1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, 0, +1, 3) ) { return true; }
+		if ( check_run_dir(board, color, i, j, -1, -1, 2, true) && check_run_dir(board, color, i, j, +1, +1, 2, true) ) {
+			if ( check_run_dir(board, color, i, j, +1, 0, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, -1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, 0, -1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, 0, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, +1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, 0, +1, 3, true) ) { return true; }
 		}
 
-		if ( check_run_dir(board, color, i, j, -1, +1, 2) && check_run_dir(board, color, i, j, +1, -1, 2) ) {
-			if ( check_run_dir(board, color, i, j, 0, -1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, -1, -1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, -1, 0, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, 0, +1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, +1, +1, 3) ) { return true; }
-			if ( check_run_dir(board, color, i, j, +1, 0, 3) ) { return true; }
+		if ( check_run_dir(board, color, i, j, -1, +1, 2, true) && check_run_dir(board, color, i, j, +1, -1, 2, true) ) {
+			if ( check_run_dir(board, color, i, j, 0, -1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, -1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, -1, 0, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, 0, +1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, +1, 3, true) ) { return true; }
+			if ( check_run_dir(board, color, i, j, +1, 0, 3, true) ) { return true; }
 		}
 		return false;
 	}
@@ -227,10 +243,10 @@ public class User_s14t242_01 extends GogoCompSub {
 	boolean check_33_X(int[][] board, int color, int i, int j) {
 		int count = 0;
 
-		if ( check_run_dir(board, color, i, j, -1, -1, 2) && check_run_dir(board, color, i, j, +1, +1, 2) ) { count++; }
-		if ( check_run_dir(board, color, i, j, -1, +1, 2) && check_run_dir(board, color, i, j, +1, -1, 2) ) { count++; }
-		if ( check_run_dir(board, color, i, j, 0, -1, 2) && check_run_dir(board, color, i, j, 0, +1, 2) ) { count++; }
-		if ( check_run_dir(board, color, i, j, -1, 0, 2) && check_run_dir(board, color, i, j, +1, 0, 2) ) { count++; }
+		if ( check_run_dir(board, color, i, j, -1, -1, 2, true) && check_run_dir(board, color, i, j, +1, +1, 2, true) ) { count++; }
+		if ( check_run_dir(board, color, i, j, -1, +1, 2, true) && check_run_dir(board, color, i, j, +1, -1, 2, true) ) { count++; }
+		if ( check_run_dir(board, color, i, j, 0, -1, 2, true) && check_run_dir(board, color, i, j, 0, +1, 2, true) ) { count++; }
+		if ( check_run_dir(board, color, i, j, -1, 0, 2, true) && check_run_dir(board, color, i, j, +1, 0, 2, true) ) { count++; }
 		return count >= 2;
 	}
 	//----------------------------------------------------------------
@@ -239,7 +255,21 @@ public class User_s14t242_01 extends GogoCompSub {
 	boolean check_run_5(int[][] board, int color) {
 		for ( int i = 0; i < size; i++) {
 			for ( int j = 0; j < size; j++ ) {
-				if ( check_run(board, color, i, j, 5) ) { return true; }
+				if ( board[i][j] != color ) { continue; }
+				if ( check_run(board, color, i, j, 5, false) ) { return true; }
+			}
+		}
+		return false;
+	}
+
+	//----------------------------------------------------------------
+	//  石が取れるか確認
+	//----------------------------------------------------------------
+	boolean check_rem_all(int[][] board, int color) {
+		for ( int i = 0; i < size; i++ ) {
+			for ( int j = 0; j < size; j++ ) {
+				if ( values[i][j] == -2 ) { continue; }
+				if ( check_rem(board, color, i, j) ) { return true; }
 			}
 		}
 		return false;
@@ -249,11 +279,11 @@ public class User_s14t242_01 extends GogoCompSub {
 	//  連の全周チェック
 	//----------------------------------------------------------------
 
-	boolean check_run(int[][] board, int color, int i, int j, int len) {
+	boolean check_run(int[][] board, int color, int i, int j, int len, boolean stop) {
 		for ( int dx = -1; dx <= 1; dx++ ) {
 			for ( int dy = -1; dy <= 1; dy++ ) {
 				if ( dx == 0 && dy == 0 ) { continue; }
-				if ( check_run_dir(board, color, i, j, dx, dy, len) ) { return true; }
+				if ( check_run_dir(board, color, i, j, dx, dy, len, stop) ) { return true; }
 			}
 		}
 		return false;
@@ -262,15 +292,16 @@ public class User_s14t242_01 extends GogoCompSub {
 	//----------------------------------------------------------------
 	//  連の方向チェック
 	//----------------------------------------------------------------
-	boolean check_run_dir(int[][] board, int color, int i, int j, int dx, int dy, int len) {
+	boolean check_run_dir(int[][] board, int color, int i, int j, int dx, int dy, int len, boolean stop) {
 		// 5連未満の連なら開始地点側で止められているか判定
 		int x = i + dx * -1;
 		int y = j + dy * -1;
 		if ( len < 5 ) {
 			// 盤外判定
-			if ( x< 0 || y < 0 || x >= size || y >= size ) { return false; }
-			// 非空マス判定
-			if ( board[x][y] == -color) { return false; }
+			if ( x >= 0 && y >= 0 && x < size && y < size ) {
+				// 止められているか判定
+				if ( board[x][y] == -color && stop) { return false; }
+			}
 		}
 		// 連判定
 		for ( int k = 1; k < len; k++ ) {
@@ -285,9 +316,9 @@ public class User_s14t242_01 extends GogoCompSub {
 		x = i + len * dx;
 		y = j + len * dy;
 		// 次の地点が盤内か判定
-		if ( x >= 0 && y >= 0 && x < size && y < size ) {
+		if ( x >= 0 && y >= 0 && x < size && y < size && len < 5 && stop) {
 			// 5連未満で止められているか
-			if ( board[x][y] == -color && len < 5 ) { return false; }
+			if ( board[x][y] == color*-1) { return false; }
 			// 自分の石があるか
 			if ( board[x][y] == color ) { return false; }
 		}
@@ -297,40 +328,58 @@ public class User_s14t242_01 extends GogoCompSub {
 	//----------------------------------------------------------------
 	//  間において連になるか確認
 	//----------------------------------------------------------------
-	boolean check_run2(int[][] board, int color, int i, int j, int len) {
-		if ( check_run2_dir(board, color, i, j, 0, -1, len) ) { return true; }
-		if ( check_run2_dir(board, color, i, j, -1, -1, len) ) { return true; }
-		if ( check_run2_dir(board, color, i, j, -1, 0, len) ) { return true; }
-		if ( check_run2_dir(board, color, i, j, -1, +1, len) ) { return true; }
+	boolean check_run2(int[][] board, int color, int i, int j, int len, boolean stop) {
+		if ( check_run2_dir(board, color, i, j, 0, -1, len, stop) ) { return true; }
+		if ( check_run2_dir(board, color, i, j, -1, -1, len, stop) ) { return true; }
+		if ( check_run2_dir(board, color, i, j, -1, 0, len, stop) ) { return true; }
+		if ( check_run2_dir(board, color, i, j, -1, +1, len, stop) ) { return true; }
 		return false;
 	}
 
-	boolean check_run2_dir(int[][] board, int color, int i, int j, int dx, int dy, int len) {
+	boolean check_run2_dir(int[][] board, int color, int i, int j, int dx, int dy, int len, boolean stop) {
 		int count = 1;
 		int x, y;
 		// 進行方向側を確認
-		for ( int k = 1; k < len; k++ ) {
+		if ( stop ) {
+			x = i + dx * -1;
+			y = j + dy * -1;
+			if ( x >= 0 && y >= 0 && x < size && y < size) {
+				if ( board[x][y] == color*-1 ) { return false; }
+			}
+		}
+		for ( int k = 1; k <= len; k++ ) {
 			x = i + k * dx;
 			y = j + k * dy;
 			// 盤外判定
 			if ( x < 0 || y < 0 || x >= size || y >= size ) { break; }
 			// 自分の石があるか確認
-			if ( board[x][y] == color ) { count++; }
-			if ( board[x][y] == color*-1 && len < 5 ) { return false; }
-			// 自分の石がないなら脱出
-			else { break; }
+			if ( board[x][y] == color ) {
+				if ( k != len ) { count++; }
+				else { return false; }
+			}
+			else if ( board[x][y] == 0 ) { break; }
+			else {
+				if ( len >= 5 || ! stop ) { break; }
+				if ( stop ) { return false; }
+			}
 		}
+
 		// 進行方向とは逆方向を確認
-		for ( int k = 1; k < len; k++ ) {
+		for ( int k = 1; k <= len; k++ ) {
 			x = i - k * dx;
 			y = j - k * dy;
 			// 盤外判定
 			if ( x < 0 || y < 0 || x >= size || y >= size ) { break; }
 			// 自分の石があるか確認
-			if ( board[x][y] == color ) { count++; }
-			if ( board[x][y] == color*-1 && len < 5 ) { return false; }
-			// 自分の石がないなら脱出
-			else { break; }
+			if ( board[x][y] == color ) {
+				if ( k != len ) { count++; }
+				else { return false; }
+			}
+			else if ( board[x][y] == 0 ) { break; }
+			else {
+				if ( len >= 5 || ! stop ) { break; }
+				if ( stop ) { return false; }
+			}
 		}
 		return count == len;
 	}
@@ -351,7 +400,6 @@ public class User_s14t242_01 extends GogoCompSub {
 	//----------------------------------------------------------------
 	//  取の方向チェック
 	//----------------------------------------------------------------
-
 	boolean check_rem_dir(int[][] board, int color, int i, int j, int dx, int dy) {
 		int len = 3;
 		for ( int k = 1; k <= len; k++ ) {
@@ -362,6 +410,16 @@ public class User_s14t242_01 extends GogoCompSub {
 			if (k == len-1) { color *= -1; }
 		}
 		return true;
+	}
+
+	//----------------------------------------------------------------
+	//  盤面評価値
+	//----------------------------------------------------------------
+	int get_weight_value(int i, int j) {
+		if ( i > 3 && j > 3 && i <= 8 && j <= 8 ) {
+			return 10;
+		}
+		return (int) Math.round(Math.random() * 7);
 	}
 
 	//----------------------------------------------------------------
@@ -394,6 +452,7 @@ public class User_s14t242_01 extends GogoCompSub {
 				}
 				if ( value == values[i][j] ) {
 					int aaa = (int) Math.round(Math.random() * 100);
+					//System.out.println(aaa);
 					if ( aaa % 2 == 0 ) {
 						hand.set_hand(i, j);
 						value = values[i][j];
