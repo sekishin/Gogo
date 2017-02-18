@@ -81,6 +81,11 @@ public class User_s14t242_01 extends GogoCompSub {
 				// 埋まっているマスはスルー
 				if (values[i][j] == -2) { continue; }
 				//--  適当な評価の例
+				// 三々の禁じ手は打たない → -1
+				if ( check_33(cell, mycolor, i, j) ) {
+					values[i][j] = -69;
+					continue;
+				}
 				// 相手の五連を崩す → 1000;
 				if ( check_run_5(cell, mycolor*-1) ) {
 					if ( check_rem(cell, mycolor*-1, i, j) ) {
@@ -129,12 +134,10 @@ public class User_s14t242_01 extends GogoCompSub {
 				}
 				// 自分の三連を作る → 400;
 				if ( check_run(cell, mycolor, i, j, 3) || check_run2(cell, mycolor, i, j, 3) ) { values[i][j] = 400; }
-				// 三々の禁じ手は打たない → -1
-				if ( check_33(cell, mycolor, i, j) ) { values[i][j] = -69; continue; }
 				// 相手の石を取る → 300;
-				if ( check_rem(cell, mycolor, i, j) ) { values[i][j] = 300; }
+				if ( check_rem(cell, mycolor, i, j) ) { values[i][j] = 500; }
 				// 自分の石を守る → 200;
-				if ( check_rem(cell, mycolor*-1, i, j) ) { values[i][j] = 200; }
+				if ( check_rem(cell, mycolor*-1, i, j) ) { values[i][j] = 500; }
 				// ランダム
 				if (values[i][j] == 0) {
 					int aaa = (int) Math.round(Math.random() * 15);
@@ -282,7 +285,7 @@ public class User_s14t242_01 extends GogoCompSub {
 		x = i + len * dx;
 		y = j + len * dy;
 		// 次の地点が盤内か判定
-		if ( x < 0 && y < 0 && x >= size && y >= size ) {
+		if ( x >= 0 && y >= 0 && x < size && y < size ) {
 			// 5連未満で止められているか
 			if ( board[x][y] == -color && len < 5 ) { return false; }
 			// 自分の石があるか
@@ -313,6 +316,7 @@ public class User_s14t242_01 extends GogoCompSub {
 			if ( x < 0 || y < 0 || x >= size || y >= size ) { break; }
 			// 自分の石があるか確認
 			if ( board[x][y] == color ) { count++; }
+			if ( board[x][y] == color*-1 && len < 5 ) { return false; }
 			// 自分の石がないなら脱出
 			else { break; }
 		}
@@ -324,6 +328,7 @@ public class User_s14t242_01 extends GogoCompSub {
 			if ( x < 0 || y < 0 || x >= size || y >= size ) { break; }
 			// 自分の石があるか確認
 			if ( board[x][y] == color ) { count++; }
+			if ( board[x][y] == color*-1 && len < 5 ) { return false; }
 			// 自分の石がないなら脱出
 			else { break; }
 		}
