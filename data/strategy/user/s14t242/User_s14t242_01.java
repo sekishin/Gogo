@@ -297,11 +297,11 @@ public class User_s14t242_01 extends GogoCompSub {
 		// 5連未満の連なら開始地点側で止められているか判定
 		int x = i + dx * -1;
 		int y = j + dy * -1;
-		if ( len < 5 ) {
+		if ( stop && len < 5 ) {
 			// 盤外判定
 			if ( x >= 0 && y >= 0 && x < size && y < size ) {
 				// 止められているか判定
-				if ( board[x][y] == -color && stop) { return false; }
+				if ( board[x][y] == -color ) { return false; }
 			}
 		}
 		// 連判定
@@ -316,11 +316,12 @@ public class User_s14t242_01 extends GogoCompSub {
 		// 終了地点の次を判定
 		x = i + len * dx;
 		y = j + len * dy;
-		// 次の地点が盤内か判定
-		if ( x >= 0 && y >= 0 && x < size && y < size && len < 5 && stop) {
-			// 5連未満で止められているか
+		if ( stop && len < 5 ) {
+			// 次の地点が盤内か判定
+			if ( x < 0 || y < 0 || x >= size || y >= size  ) { return false; }
+			// 止連か判定
 			if ( board[x][y] == color*-1) { return false; }
-			// 自分の石があるか
+			// 長連か判定
 			if ( board[x][y] == color ) { return false; }
 		}
 		return true;
@@ -352,7 +353,10 @@ public class User_s14t242_01 extends GogoCompSub {
 			x = i + k * dx;
 			y = j + k * dy;
 			// 盤外判定
-			if ( x < 0 || y < 0 || x >= size || y >= size ) { break; }
+			if ( x < 0 || y < 0 || x >= size || y >= size ) {
+				if ( stop ) { return false; }
+				else { break; }
+			}
 			// 自分の石があるか確認
 			if ( board[x][y] == color ) {
 				if ( k != len ) { count++; }
@@ -370,7 +374,10 @@ public class User_s14t242_01 extends GogoCompSub {
 			x = i - k * dx;
 			y = j - k * dy;
 			// 盤外判定
-			if ( x < 0 || y < 0 || x >= size || y >= size ) { break; }
+			if ( x < 0 || y < 0 || x >= size || y >= size ) {
+				if ( stop ) { return false; }
+				else { break; }
+			}
 			// 自分の石があるか確認
 			if ( board[x][y] == color ) {
 				if ( k != len ) { count++; }
