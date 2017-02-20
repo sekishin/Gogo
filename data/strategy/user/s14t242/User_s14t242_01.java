@@ -126,11 +126,6 @@ public class User_s14t242_01 extends GogoCompSub {
 					values[i][j] = 700;
 					continue;
 				}
-				// 自分の四連を作る → 600;
-				if ( check_run(cell, mycolor, i, j, 4, true)  || check_run2(cell, mycolor, i, j, 4, true) ) {
-					values[i][j] = 600;
-					continue;
-				}
 				// 自分の石を守る → 650;
 				if ( check_rem_all(cell, mycolor) ) {
 					tmpHand.set_hand(i, j);
@@ -140,19 +135,27 @@ public class User_s14t242_01 extends GogoCompSub {
 						continue;
 					}
 				}
+				// 自分の四連を作る → 600;
+				if ( check_run(cell, mycolor, i, j, 4, true)  || check_run2(cell, mycolor, i, j, 4, true) ) {
+					values[i][j] = 600;
+					continue;
+				}
+				// 相手の石を取る → 550;
+				if ( check_rem(cell, mycolor*-1, i, j) ) {
+					values[i][j] = 550;
+					continue;
+				}
+
+				// 自分の三連を作る → 450;
+				if ( check_run(cell, mycolor, i, j, 3, true) || check_run2(cell, mycolor, i, j, 3, true) ) {
+					values[i][j] = 450;
+					continue;
+				}
 
 				// 相手の三連を防ぐ → 400;
 				if ( check_run(cell, mycolor*-1, i, j, 3, true)  || check_run2(cell, mycolor*-1, i, j, 3, true)) {
 					values[i][j] = 400;
 					continue;
-				}
-				// 自分の三連を作る → 450;
-				if ( check_run(cell, mycolor, i, j, 3, true) || check_run2(cell, mycolor, i, j, 3, true) ) {
-					values[i][j] = 450;
-				}
-				// 相手の石を取る → 550;
-				if ( check_rem(cell, mycolor*-1, i, j) ) {
-					values[i][j] = 550;
 				}
 				// ランダム
 				if (values[i][j] == 0) {
