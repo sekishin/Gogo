@@ -108,7 +108,7 @@ public class User_s14t242_01 extends GogoCompSub {
 					continue;
 				}
 				// 敗北阻止(五取) → 850;
-				if ( stolenStones == 8 ) {
+				if ( stolenStones == 8 && check_rem_all(cell, mycolor) ) {
 					tmpHand.set_hand(i, j);
 					tmpState = prev.test_hand(tmpHand);
 					if ( ! check_rem_all(tmpState.board.get_cell_all(), mycolor) ) {
@@ -131,6 +131,16 @@ public class User_s14t242_01 extends GogoCompSub {
 					values[i][j] = 600;
 					continue;
 				}
+				// 自分の石を守る → 650;
+				if ( check_rem_all(cell, mycolor) ) {
+					tmpHand.set_hand(i, j);
+					tmpState = prev.test_hand(tmpHand);
+					if ( ! check_rem_all(tmpState.board.get_cell_all(), mycolor) ) {
+						values[i][j] = 650;
+						continue;
+					}
+				}
+
 				// 相手の三連を防ぐ → 400;
 				if ( check_run(cell, mycolor*-1, i, j, 3, true)  || check_run2(cell, mycolor*-1, i, j, 3, true)) {
 					values[i][j] = 400;
@@ -143,15 +153,6 @@ public class User_s14t242_01 extends GogoCompSub {
 				// 相手の石を取る → 550;
 				if ( check_rem(cell, mycolor*-1, i, j) ) {
 					values[i][j] = 550;
-				}
-				// 自分の石を守る → 650;
-				if ( check_rem_all(cell, mycolor) ) {
-					tmpHand.set_hand(i, j);
-					tmpState = prev.test_hand(tmpHand);
-					if ( ! check_rem_all(tmpState.board.get_cell_all(), mycolor) ) {
-						values[i][j] = 650;
-						continue;
-					}
 				}
 				// ランダム
 				if (values[i][j] == 0) {
