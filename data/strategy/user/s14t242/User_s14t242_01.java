@@ -128,6 +128,10 @@ public class User_s14t242_01 extends GogoCompSub {
 				}
 				// 自分の石を守る → 650;
 				if ( check_rem_all(cell, mycolor) ) {
+					if ( check_rem(cell, mycolor, i, j) ) {
+						values[i][j] = 650;
+						continue;
+					}
 					tmpHand.set_hand(i, j);
 					tmpState = prev.test_hand(tmpHand);
 					if ( ! check_rem_all(tmpState.board.get_cell_all(), mycolor) ) {
@@ -135,6 +139,12 @@ public class User_s14t242_01 extends GogoCompSub {
 						continue;
 					}
 				}
+				// 自分の三四を作る
+				if ( check_34(cell, mycolor, i, j) ) {
+					values[i][j] = 630;
+					continue;
+				}
+
 				// 自分の四連を作る → 600;
 				if ( check_run(cell, mycolor, i, j, 4, true)  || check_run2(cell, mycolor, i, j, 4, true) ) {
 					values[i][j] = 600;
@@ -247,10 +257,10 @@ public class User_s14t242_01 extends GogoCompSub {
 	boolean check_33_X(int[][] board, int color, int i, int j) {
 		int count = 0;
 
-		if ( check_run_dir(board, color, i, j, -1, -1, 2, true) && check_run_dir(board, color, i, j, +1, +1, 2, true) ) { count++; }
-		if ( check_run_dir(board, color, i, j, -1, +1, 2, true) && check_run_dir(board, color, i, j, +1, -1, 2, true) ) { count++; }
-		if ( check_run_dir(board, color, i, j, 0, -1, 2, true) && check_run_dir(board, color, i, j, 0, +1, 2, true) ) { count++; }
-		if ( check_run_dir(board, color, i, j, -1, 0, 2, true) && check_run_dir(board, color, i, j, +1, 0, 2, true) ) { count++; }
+		if ( check_run2_dir(board, color, i, j, +1, +1, 3, true) ) { count++; }
+		if ( check_run2_dir(board, color, i, j, +1, 0, 3, true) ) { count++; }
+		if ( check_run2_dir(board, color, i, j, +1, -1, 3, true) ) { count++; }
+		if ( check_run2_dir(board, color, i, j, 0, -1, 3, true)  ) { count++; }
 		return count >= 2;
 	}
 	//----------------------------------------------------------------
@@ -264,6 +274,13 @@ public class User_s14t242_01 extends GogoCompSub {
 			}
 		}
 		return false;
+	}
+
+	//----------------------------------------------------------------
+	//  三四判定
+	//----------------------------------------------------------------
+	boolean check_34(int[][] board, int color, int i, int j) {
+		return check_run2(board, color, i, j, 3, true) && check_run2(board, color, i, j, 4, true);
 	}
 
 	//----------------------------------------------------------------
@@ -300,12 +317,12 @@ public class User_s14t242_01 extends GogoCompSub {
 		// 5連未満の連なら開始地点側で止められているか判定
 		int x = i + dx * -1;
 		int y = j + dy * -1;
-		if ( stop && len < 5 ) {
-			// 盤外判定
-			if ( x >= 0 && y >= 0 && x < size && y < size ) {
-				// 止められているか判定
-				if ( board[x][y] == -color ) { return false; }
-			}
+		// 盤外判定
+		if ( x >= 0 && y >= 0 && x < size && y < size ) {
+			// 止められているか判定
+			if ( board[x][y] == -color && stop && len < 5 ) { return false; }
+			// 長連か判定
+			if ( board[x][y] == color ) { return false; }
 		}
 		// 連判定
 		for ( int k = 1; k < len; k++ ) {
