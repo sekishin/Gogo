@@ -173,6 +173,9 @@ public class User_s14t242_01 extends GogoCompSub {
 					if ( check_run2(cell, mycolor, i, j, 2, true) ) {
 						values[i][j] = 2;
 					}
+					if ( values[i][j] == 10 && check_keima(cell, mycolor, i, j) ) {
+						values[i][j] = 15;
+					}
 				}
 				// 四々や四三の判定
 				// 飛び三や飛び四の判定
@@ -180,6 +183,24 @@ public class User_s14t242_01 extends GogoCompSub {
 			}
 		}
 		show_value();
+	}
+
+	//----------------------------------------------------------------
+	//  桂馬位置の確認
+	//----------------------------------------------------------------
+	boolean check_keima(int[][] board, int color, int i, int j) {
+		for ( int dx = -2; dx <= 2; dx++ ) {
+			if ( dx == 0 ) { continue; }
+			for ( int dy = -2; dy <= 2; dy++ ) {
+				if ( dy == 0 ) { continue; }
+				if ( dx == dy || dx == -dy ) { continue; }
+				int x = i + dx;
+				int y = j + dy;
+				if ( x < 0 || y < 0 || x >= size || y >= size ) { continue; }
+				if ( board[x][y] == color ) { return true; }
+			}
+		}
+		return false;
 	}
 
 	//----------------------------------------------------------------
