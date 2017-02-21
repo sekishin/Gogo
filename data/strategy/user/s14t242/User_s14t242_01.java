@@ -155,13 +155,16 @@ public class User_s14t242_01 extends GogoCompSub {
 					values[i][j] = 550;
 					continue;
 				}
-
 				// 自分の三連を作る → 450;
 				if ( check_run(cell, mycolor, i, j, 3, true) || check_run2(cell, mycolor, i, j, 3, true) ) {
 					values[i][j] = 450;
 					continue;
 				}
-
+				// 自分の飛び三を作る → 500
+				if ( check_tobi_3(cell, mycolor, i, j) ) {
+					values[i][j] = 500;
+					continue;
+				}
 				// 相手の三連を防ぐ → 400;
 				if ( check_run(cell, mycolor*-1, i, j, 3, true)  || check_run2(cell, mycolor*-1, i, j, 3, true)) {
 					values[i][j] = 400;
@@ -183,6 +186,43 @@ public class User_s14t242_01 extends GogoCompSub {
 			}
 		}
 		show_value();
+	}
+
+	//----------------------------------------------------------------
+	//  飛び三の判定
+	//----------------------------------------------------------------
+	boolean check_tobi_3(int[][] board, int color, int i, int j) {
+		if ( check_tobi_3_dir(board, color, i, j, 0, -1) ) { return true; }
+		if ( check_tobi_3_dir(board, color, i, j, -1, -1) ) { return true; }
+		if ( check_tobi_3_dir(board, color, i, j, -1, 0) ) { return true; }
+		if ( check_tobi_3_dir(board, color, i, j, -1, +1) ) { return true; }
+		return false;
+	}
+
+	boolean check_tobi_3_dir(int[][] board, int color, int i, int j, int dx, int dy) {
+		// 6つの並びの両端が空マス、中の4つの並びに自石が3つと空マス1つ
+		for ( int k = 1; k <= 4; k++) {
+			int startX = i + dx * k;
+			int endX = i + dx * (k-5);
+			int startY = j + dy * k;
+			int endY = j + dy * (k-5);
+			// 両端が空マスか判定
+			if ( startX < 0 || startY < 0 || startX >= size || startY >= size ) { continue; }
+			if ( endX < 0 || endY < 0 || endX >= size || endY >= size ) { continue; }
+			if ( board[startX][startY] != 0 || board[endX][endY] != 0 ) { continue; }
+			// 中の4マスを調査
+			int myStone = 0;
+			int empty = 0;
+			for ( int l = 1; l <= 4; l++ ) {
+				int x = startX - dx * l;
+				int y = startY - dy * l;
+				if ( x == i && y == j ) { myStone++; }
+				else if ( board[x][y] == color ) { myStone++; }
+				else if ( board[x][y] == 0 ) { empty++; }
+			}
+			if ( myStone == 3 && empty == 1 ) { return true; }
+		}
+		return false;
 	}
 
 	//----------------------------------------------------------------
