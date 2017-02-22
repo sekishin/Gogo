@@ -92,83 +92,71 @@ public class User_s14t242_01 extends GogoCompSub {
 						tmpHand.set_hand(i, j);
 						tmpState = prev.test_hand(tmpHand);
 						if ( ! check_run_5(tmpState.board.get_cell_all(), mycolor*-1) ) {
-							values[i][j] = 1000;
+							values[i][j] = 100000;
 							continue;
 						}
 					}
 				}
 				// 勝利(五取) → 950;
 				if ( gettenStones == 8 && check_rem(cell, mycolor*-1, i, j) ) {
-					values[i][j] = 950;
-					continue;
+					values[i][j] += 950;
 				}
 				// 勝利(五連) → 900;
 				if ( check_run(cell, mycolor, i, j, 5, false) || check_run2(cell, mycolor, i, j, 5, false) ) {
-					values[i][j] = 900;
-					continue;
+					values[i][j] += 900;
 				}
 				// 敗北阻止(五取) → 850;
 				if ( stolenStones == 8 && check_rem_all(cell, mycolor) ) {
 					tmpHand.set_hand(i, j);
 					tmpState = prev.test_hand(tmpHand);
 					if ( ! check_rem_all(tmpState.board.get_cell_all(), mycolor) ) {
-						values[i][j] = 850;
-						continue;
+						values[i][j] += 850;
 					}
 				}
 				// 敗北阻止(五連) → 800;
 				if ( check_run(cell, mycolor*-1, i, j, 5, false) || check_run2(cell, mycolor*-1, i, j, 5, false) ) {
-					values[i][j] = 800;
-					continue;
+					values[i][j] += 800;
 				}
 				// 相手の四連を止める → 700;
 				if ( check_run(cell, mycolor*-1, i, j, 4, true) || check_run2(cell, mycolor*-1, i, j, 4, true) ) {
-					values[i][j] = 700;
-					continue;
+					values[i][j] += 700;
 				}
 				// 自分の石を守る → 650;
 				if ( check_rem_all(cell, mycolor) ) {
 					if ( check_rem(cell, mycolor, i, j) ) {
-						values[i][j] = 650;
-						continue;
+						values[i][j] += 650;
 					}
-					tmpHand.set_hand(i, j);
+					/*tmpHand.set_hand(i, j);
 					tmpState = prev.test_hand(tmpHand);
 					if ( ! check_rem_all(tmpState.board.get_cell_all(), mycolor) ) {
-						values[i][j] = 650;
-						continue;
-					}
-				}
+						values[i][j] += 650;
+					}*/
+				}/*
 				// 自分の三四を作る
 				if ( check_34(cell, mycolor, i, j) ) {
-					values[i][j] = 630;
+					values[i][j] += 630;
 					continue;
 				}
-
+*/
 				// 自分の四連を作る → 600;
 				if ( check_run(cell, mycolor, i, j, 4, true)  || check_run2(cell, mycolor, i, j, 4, true) ) {
-					values[i][j] = 600;
-					continue;
+					values[i][j] += 600;
 				}
 				// 相手の石を取る → 550;
 				if ( check_rem(cell, mycolor*-1, i, j) ) {
-					values[i][j] = 550;
-					continue;
+					values[i][j] += 550;
 				}
 				// 自分の三連を作る → 450;
 				if ( check_run(cell, mycolor, i, j, 3, true) || check_run2(cell, mycolor, i, j, 3, true) ) {
-					values[i][j] = 450;
-					continue;
+					values[i][j] += 450;
 				}
 				// 自分の飛び三を作る → 500
 				if ( check_tobi_3(cell, mycolor, i, j) ) {
-					values[i][j] = 500;
-					continue;
+					values[i][j] += 500;
 				}
 				// 相手の三連を防ぐ → 400;
 				if ( check_run(cell, mycolor*-1, i, j, 3, true)  || check_run2(cell, mycolor*-1, i, j, 3, true)) {
-					values[i][j] = 400;
-					continue;
+					values[i][j] += 400;
 				}
 				// ランダム
 				if (values[i][j] == 0) {
