@@ -66,14 +66,46 @@ public class User_s14t242_02 extends GogoCompSub {
 	//----------------------------------------------------------------
 
 	public void calc_values(GameState prev, GameBoard board) {
-		int [][] cell = board.get_cell_all();  // 盤面情報
-		int mycolor;                  // 自分の石の色
-		mycolor = role;
-		int gettenStones = get_enemystone(prev);	// 取られて石の個数
-		int stolenStones = get_mystone(prev);	// 取った石の個数
+		int mycolor = role;
+		negamax(prev, mycolor, 1);
+	}
+
+	int negamax(GameState nowState, int mycolor, int depth) {
+		GameBoard nowBoard = nowState.board;
+		int[][] cell = nowBoard.get_cell_all();
+		int nowTurn = nowState.turn;
+		GogoHand tmpHand = new GogoHand();
+		GameState nextState;
+		int[][] eval = new int[size][size];
+
+		if ( depth == 1 ) { return evaluation(nowState); }
+		for ( int i = 0; i < size; i++ ) {
+			for ( int j =0 ; j < size; j++ ) {
+				if ( cell[i][j] != nowBoard.SPACE ) { continue; }
+				tmpHand.set_hand(i, j);
+				nextState = nowState.test_hand(tmpHand);
+				eval[i][j] = negamax(nextState, mycolor, depth-1);
+				if ( nowTurn != mycolor ) { eval[i][j] *= -1; }
+			}
+		}
+		for ( int i = 0; i < size; i++ ) {
+			for ( int j = 0; j < size; j++ ) {
+				values[i][j] = eval[i][j];
+			}
+		}
+		return max(eval);
+	}
+
+	int evaluation(GameState prev) {
+		GameBoard board = prev.board;
+		int gettenStones = get_mystone(prev);	// 取った石の個数
+		int stolenStones = get_enemystone(prev);	// 取られた石の個数
 		GogoHand tmpHand = new GogoHand();
 		GameState tmpState;
-
+		int mycolor = prev.turn;
+		int[][] cell = board.get_cell_all();
+		init_values(prev, board);
+		System.out.println(mycolor + " " + mycolor*-1);
 		System.out.println(gettenStones + " " + stolenStones);
 		//--  各マスの評価値
 		for (int i = 0; i < size; i++) {
@@ -186,6 +218,18 @@ public class User_s14t242_02 extends GogoCompSub {
 			}
 		}
 		show_value();
+		return max(values);
+
+	}
+
+	int max(int[][] array) {
+		int value = Integer.MIN_VALUE;
+		for ( int i = 0; i < size; i++ ) {
+			for ( int j = 0; j < size; j++ ) {
+				if ( array[i][j] > value ) { value = array[i][j]; }
+			}
+		}
+		return value;
 	}
 
 	//----------------------------------------------------------------

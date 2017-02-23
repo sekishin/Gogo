@@ -99,11 +99,11 @@ public class User_s14t242_01 extends GogoCompSub {
 				}
 				// 勝利(五取) → 950;
 				if ( gettenStones == 8 && check_rem(cell, mycolor*-1, i, j) ) {
-					values[i][j] += 950;
+					values[i][j] += 9500;
 				}
 				// 勝利(五連) → 900;
 				if ( check_run(cell, mycolor, i, j, 5, false) || check_run2(cell, mycolor, i, j, 5, false) ) {
-					values[i][j] += 900;
+					values[i][j] += 9000;
 				}
 				// 敗北阻止(五取) → 850;
 				if ( stolenStones == 8 && check_rem_all(cell, mycolor) ) {
@@ -526,14 +526,6 @@ public class User_s14t242_01 extends GogoCompSub {
 				if (value < values[i][j]) {
 					hand.set_hand(i, j);
 					value = values[i][j];
-				}
-				if ( value == values[i][j] ) {
-					int aaa = (int) Math.round(Math.random() * 100);
-					//System.out.println(aaa);
-					if ( aaa % 2 == 0 ) {
-						hand.set_hand(i, j);
-						value = values[i][j];
-					}
 				}
 			}
 		}
