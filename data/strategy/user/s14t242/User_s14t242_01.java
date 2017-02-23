@@ -92,8 +92,7 @@ public class User_s14t242_01 extends GogoCompSub {
 						tmpHand.set_hand(i, j);
 						tmpState = prev.test_hand(tmpHand);
 						if ( ! check_run_5(tmpState.board.get_cell_all(), mycolor*-1) ) {
-							values[i][j] = 100000;
-							continue;
+							values[i][j] += 1000;
 						}
 					}
 				}
