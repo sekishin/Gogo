@@ -165,13 +165,13 @@ public class User_s14t242_03 extends GogoCompSub {
 
 	}
 	//----------------------------------------------------------------
-	//  飛び三の判定
+	//  2飛び三の判定
 	//----------------------------------------------------------------
 	boolean check_tobi_3(int[][] board, int color, int i, int j) {
-		if ( check_tobi_3_dir(board, color, i, j, 0, -1) ) { return true; }
-		if ( check_tobi_3_dir(board, color, i, j, -1, -1) ) { return true; }
-		if ( check_tobi_3_dir(board, color, i, j, -1, 0) ) { return true; }
-		if ( check_tobi_3_dir(board, color, i, j, -1, +1) ) { return true; }
+		if ( check_1tobi_3_dir(board, color, i, j, 0, -1) ) { return true; }
+		if ( check_1tobi_3_dir(board, color, i, j, -1, -1) ) { return true; }
+		if ( check_1tobi_3_dir(board, color, i, j, -1, 0) ) { return true; }
+		if ( check_1tobi_3_dir(board, color, i, j, -1, +1) ) { return true; }
 		return false;
 	}
 
@@ -241,25 +241,6 @@ public class User_s14t242_03 extends GogoCompSub {
 	}
 
 	//----------------------------------------------------------------
-	//  三四判定
-	//----------------------------------------------------------------
-	boolean check_34(int[][] board, int color, int i, int j) {
-		return check_run(board, color, i, j, 3, true, true) && check_run(board, color, i, j, 4, true, true);
-	}
-
-	//----------------------------------------------------------------
-	//  石が取れるか確認
-	//----------------------------------------------------------------
-	boolean check_rem_all(int[][] board, int color) {
-		for ( int i = 0; i < size; i++ ) {
-			for ( int j = 0; j < size; j++ ) {
-				if ( values[i][j] == -2 ) { continue; }
-				if ( check_rem(board, color, i, j) ) { return true; }
-			}
-		}
-		return false;
-	}
-	//----------------------------------------------------------------
 	//  連の個数チェック
 	//----------------------------------------------------------------
 	int check_run_num(int[][] board, int color, int i, int j, int len) {
@@ -284,7 +265,6 @@ public class User_s14t242_03 extends GogoCompSub {
 	//----------------------------------------------------------------
 	//  連の方向チェック
 	//----------------------------------------------------------------
-
 	boolean check_run_dir(int[][] board, int color, int i, int j, int dx, int dy, int len, boolean stop_dir1, boolean stop_dir2) {
 		int count = 1;
 		int x, y;
