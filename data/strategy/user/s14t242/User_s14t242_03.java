@@ -155,7 +155,7 @@ public class User_s14t242_03 extends GogoCompSub {
 
 				//-- 敗北確定阻止(3ターン後)
 				// 四連阻止 4000
-				if ( ! check_next_enemy_run_4(next_state, mycolor) ) {
+				if ( ! check_run_3_exist(next_state, mycolor*-1) ) {
 					eval[i][j] += 4000;
 				}
 				// 三四阻止 2000
@@ -173,6 +173,10 @@ public class User_s14t242_03 extends GogoCompSub {
 
 
 				//-- 敗北近傍阻止
+				// 三連阻止 200
+				if ( check_run(cell, mycolor*-1, i, j, 3, true, true) ) {
+					eval[i][j] += 200;
+				}
 				//石取阻止 100
 				if ( ! check_next_enemy_rem(next_state, mycolor, now_stolen_stones_count) ) {
 					eval[i][j] += 100;
@@ -612,6 +616,8 @@ public class User_s14t242_03 extends GogoCompSub {
 				if ( x == i && y == j ) { myStone++; }
 				else if ( board[x][y] == color ) { myStone++; }
 				else if ( board[x][y] == 0 ) { empty++; }
+				if ( myStone == 0 && empty == 1 ) { break; }
+				if ( myStone == 4 && empty == 0 ) { break; }
 			}
 			if ( myStone == 4 && empty == 1 ) { return true; }
 		}
@@ -645,6 +651,8 @@ public class User_s14t242_03 extends GogoCompSub {
 				if ( x == i && y == j ) { myStone++; }
 				else if ( board[x][y] == color ) { myStone++; }
 				else if ( board[x][y] == 0 ) { empty++; }
+				if ( myStone == 0 && empty == 1 ) { break; }
+				if ( myStone == 3 && empty == 0 ) { break; }
 			}
 			if ( myStone == 3 && empty == 2 ) { return true; }
 		}
@@ -690,6 +698,8 @@ public class User_s14t242_03 extends GogoCompSub {
 				if ( x == i && y == j ) { myStone++; }
 				else if ( board[x][y] == color ) { myStone++; }
 				else if ( board[x][y] == 0 ) { empty++; }
+				if ( myStone == 0 && empty == 1 ) { break; }
+				if ( myStone == 3 && empty == 0 ) { break; }
 			}
 			if ( myStone == 3 && empty == 1 ) { return true; }
 		}
