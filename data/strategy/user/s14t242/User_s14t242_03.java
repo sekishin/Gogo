@@ -135,8 +135,17 @@ public class User_s14t242_03 extends GogoCompSub {
 					eval[i][j] += 200000;
 				}
 				// 四四 100000
+				if ( check_44_exist(next_state, mycolor) ) {
+					eval[i][j] += 100000;
+				}
 				// 一飛び三三 40000
+				if ( check_33_exist(next_state, mycolor) ) {
+					eval[i][j] += 40000;
+				}
 				// 三四 20000
+				if ( check_34_exist(next_state, mycolor) ) {
+					eval[i][j] += 20000;
+				}
 
 				//-- 勝利可能性(2ターン後)
 				// 仮五連 10000
@@ -150,25 +159,33 @@ public class User_s14t242_03 extends GogoCompSub {
 					eval[i][j] += 4000;
 				}
 				// 三四阻止 2000
+				if ( ! check_next_enemy_34(next_state, mycolor) ) {
+					eval[i][j] += 2000;
+				}
 				// 四四阻止 1000
+				if ( ! check_next_enemy_44(next_state, mycolor) ) {
+					eval[i][j] += 1000;
+				}
 				// 一飛び三三阻止 400
+				if ( ! check_next_enemy_33(next_state, mycolor) ) {
+					eval[i][j] += 400;
+				}
 
 
 				//-- 敗北近傍阻止
-				// 三連阻止 100
-				//石取阻止 40
+				//石取阻止 100
 				if ( ! check_next_enemy_rem(next_state, mycolor, now_stolen_stones_count) ) {
-					eval[i][j] += 40;
+					eval[i][j] += 100;
 				}
 
 				//-- 勝利近傍
-				// 石取 20
+				// 石取 40
 				if ( get_mystone(next_state, mycolor) > now_gotton_stones_count ) {
-					eval[i][j] += 20;
+					eval[i][j] += 40;
 				}
-				// 三連 10
+				// 三連 20
 				if ( check_run_3_exist(next_state, mycolor) ) {
-					eval[i][j] += 10;
+					eval[i][j] += 20;
 				}
 
 				//-- 調整
@@ -180,57 +197,6 @@ public class User_s14t242_03 extends GogoCompSub {
 		show_value();
 	}
 
-	//--------------------------------------------------------------------
-	//  自分の取石数を取得
-	//--------------------------------------------------------------------
-  	public int get_mystone(GameState prev, int turn) {
-		return prev.get_pocket(turn).point;
- 	}
-
-	//--------------------------------------------------------------------
-	//  相手の取石数を取得
-	//--------------------------------------------------------------------
-	public int get_enemystone(GameState prev, int turn) {
-		return prev.get_pocket(turn*-1).point;
-	}
-
-
-	//----------------------------------------------------------------
-	//  1飛び三の判定
-	//----------------------------------------------------------------
-	boolean check_1tobi_3(int[][] board, int color, int i, int j) {
-		if ( check_1tobi_3_dir(board, color, i, j, 0, -1) ) { return true; }
-		if ( check_1tobi_3_dir(board, color, i, j, -1, -1) ) { return true; }
-		if ( check_1tobi_3_dir(board, color, i, j, -1, 0) ) { return true; }
-		if ( check_1tobi_3_dir(board, color, i, j, -1, +1) ) { return true; }
-		return false;
-	}
-
-	boolean check_1tobi_3_dir(int[][] board, int color, int i, int j, int dx, int dy) {
-		// 6つの並びの両端が空マス、中の4つの並びに自石が3つと空マス1つ
-		for ( int k = 1; k <= 4; k++) {
-			int startX = i + dx * k;
-			int endX = i + dx * (k-5);
-			int startY = j + dy * k;
-			int endY = j + dy * (k-5);
-			// 両端が空マスか判定
-			if ( startX < 0 || startY < 0 || startX >= size || startY >= size ) { continue; }
-			if ( endX < 0 || endY < 0 || endX >= size || endY >= size ) { continue; }
-			if ( board[startX][startY] != 0 || board[endX][endY] != 0 ) { continue; }
-			// 中の4マスを調査
-			int myStone = 0;
-			int empty = 0;
-			for ( int l = 1; l <= 4; l++ ) {
-				int x = startX - dx * l;
-				int y = startY - dy * l;
-				if ( x == i && y == j ) { myStone++; }
-				else if ( board[x][y] == color ) { myStone++; }
-				else if ( board[x][y] == 0 ) { empty++; }
-			}
-			if ( myStone == 3 && empty == 1 ) { return true; }
-		}
-		return false;
-	}
 
 	//----------------------------------------------------------------
 	//  桂馬位置の確認
@@ -256,7 +222,104 @@ public class User_s14t242_03 extends GogoCompSub {
 	boolean check_taboo(int[][] board, int color, int i, int j) {
 		return check_run_num(board, color, i, j, 3) >= 2;
 	}
-
+	//----------------------------------------------------------------
+	//  一飛び三三があるか確認
+	//----------------------------------------------------------------
+	boolean check_33_exist(GameState now, int color) {
+		int[][] cell = now.board.get_cell_all();
+		for ( int i = 0; i < size; i++ ) {
+			for ( int j = 0; j < size; j++ ) {
+				if ( cell[i][j] != color ) { continue; }
+				int run = check_run_num(cell, color, i, j, 3);
+				int tobi = check_1tobi_3_num(cell, color, i, j);
+				if (  run <= 1 && run+tobi >= 2 ) { return true; }
+			}
+		}
+		return false;
+	}
+	//----------------------------------------------------------------
+	//  次の相手のターンで一飛び三三になるか確認
+	//----------------------------------------------------------------
+	boolean check_next_enemy_33(GameState now, int color) {
+		int[][] cell = now.board.get_cell_all();
+		GogoHand tmp_hand = new GogoHand();
+		GameState next_state;
+		for ( int i = 0; i < size; i++ ) {
+			for ( int j = 0; j < size; j++ ) {
+				if ( cell[i][j] != now.board.SPACE ) { continue; }
+				tmp_hand.set_hand(i, j);
+				next_state = now.test_hand(tmp_hand);
+				if ( check_33_exist(next_state, color*-1) ) { return true; }
+			}
+		}
+		return false;
+	}
+	//----------------------------------------------------------------
+	//  三四があるか確認
+	//----------------------------------------------------------------
+	boolean check_34_exist(GameState now, int color) {
+		int[][] cell = now.board.get_cell_all();
+		for ( int i = 0; i < size; i++ ) {
+			for ( int j = 0; j < size; j++ ) {
+				if ( cell[i][j] != color ) { continue; }
+				int run_3 = check_run_num(cell, color, i, j, 3);
+				int tobi_3 = check_1tobi_3_num(cell, color, i, j);
+				int run_4 = check_run_num(cell, color, i, j, 4);
+				int tobi_4 = check_tobi_4_num(cell, color, i, j);
+				if (  run_3 <= 1 && run_3+tobi_3 >= 1  && run_4+tobi_4 >= 1 ) { return true; }
+			}
+		}
+		return false;
+	}
+	//----------------------------------------------------------------
+	//  次の相手のターンで三四になるか確認
+	//----------------------------------------------------------------
+	boolean check_next_enemy_34(GameState now, int color) {
+		int[][] cell = now.board.get_cell_all();
+		GogoHand tmp_hand = new GogoHand();
+		GameState next_state;
+		for ( int i = 0; i < size; i++ ) {
+			for ( int j = 0; j < size; j++ ) {
+				if ( cell[i][j] != now.board.SPACE ) { continue; }
+				tmp_hand.set_hand(i, j);
+				next_state = now.test_hand(tmp_hand);
+				if ( check_34_exist(next_state, color*-1) ) { return true; }
+			}
+		}
+		return false;
+	}
+	//----------------------------------------------------------------
+	//  四四があるか確認
+	//----------------------------------------------------------------
+	boolean check_44_exist(GameState now, int color) {
+		int[][] cell = now.board.get_cell_all();
+		for ( int i = 0; i < size; i++ ) {
+			for ( int j = 0; j < size; j++ ) {
+				if ( cell[i][j] != color ) { continue; }
+				int run = check_run_num(cell, color, i, j, 4);
+				int tobi = check_tobi_4_num(cell, color, i, j);
+				if (  run+tobi >= 2 ) { return true; }
+			}
+		}
+		return false;
+	}
+	//----------------------------------------------------------------
+	//  次の相手のターンで四四になるか確認
+	//----------------------------------------------------------------
+	boolean check_next_enemy_44(GameState now, int color) {
+		int[][] cell = now.board.get_cell_all();
+		GogoHand tmp_hand = new GogoHand();
+		GameState next_state;
+		for ( int i = 0; i < size; i++ ) {
+			for ( int j = 0; j < size; j++ ) {
+				if ( cell[i][j] != now.board.SPACE ) { continue; }
+				tmp_hand.set_hand(i, j);
+				next_state = now.test_hand(tmp_hand);
+				if ( check_44_exist(next_state, color*-1) ) { return true; }
+			}
+		}
+		return false;
+	}
 	//----------------------------------------------------------------
 	//  次の相手のターンで石が取られるか確認
 	//----------------------------------------------------------------
@@ -467,7 +530,6 @@ public class User_s14t242_03 extends GogoCompSub {
 	//----------------------------------------------------------------
 	//  取の全周チェック(ダブルの判定は無し)
 	//----------------------------------------------------------------
-
 	boolean check_rem(int [][] board, int color, int i, int j) {
 		for ( int dx = -1; dx <= 1; dx++ ) {
 			for ( int dy = -1; dy <= 1; dy++ ) {
@@ -514,6 +576,139 @@ public class User_s14t242_03 extends GogoCompSub {
 		};
 		return weight[i][j];
 	}
+	//----------------------------------------------------------------
+	//  飛び四の判定
+	//----------------------------------------------------------------
+	int check_tobi_4_num(int[][] board, int color, int i, int j) {
+		int count = 0;
+		if ( check_tobi_4_dir(board, color, i, j, 0, -1) ) { count++; }
+		if ( check_tobi_4_dir(board, color, i, j, -1, -1) ) { count++; }
+		if ( check_tobi_4_dir(board, color, i, j, -1, 0) ) { count++; }
+		if ( check_tobi_4_dir(board, color, i, j, -1, +1) ) { count++; }
+		return count;
+	}
+
+	boolean check_tobi_4(int[][] board, int color, int i, int j) {
+		if ( check_tobi_4_dir(board, color, i, j, 0, -1) ) { return true; }
+		if ( check_tobi_4_dir(board, color, i, j, -1, -1) ) { return true; }
+		if ( check_tobi_4_dir(board, color, i, j, -1, 0) ) { return true; }
+		if ( check_tobi_4_dir(board, color, i, j, -1, +1) ) { return true; }
+		return false;
+	}
+
+	boolean check_tobi_4_dir(int[][] board, int color, int i, int j, int dx, int dy) {
+		// 5つの並びに自石が4つと空マス1つ
+		// 開始地点の決定
+		for ( int k = 0; k <= 4; k++ ) {
+			int startX = i + k * dx;
+			int startY = j + k * dy;
+			int myStone = 0;
+			int empty = 0;
+			// 石の個数を確認
+			for ( int l = 0; l < 5; l++ ) {
+				int x = startX + l * dx;
+				int y = startY + l * dy;
+				if ( x < 0 || y < 0 || x >= size || y >= size ) { break; }
+				if ( x == i && y == j ) { myStone++; }
+				else if ( board[x][y] == color ) { myStone++; }
+				else if ( board[x][y] == 0 ) { empty++; }
+			}
+			if ( myStone == 4 && empty == 1 ) { return true; }
+		}
+		return false;
+	}
+
+	//----------------------------------------------------------------
+	//  2飛び三の判定
+	//----------------------------------------------------------------
+	boolean check_2tobi_3(int[][] board, int color, int i, int j) {
+		if ( check_2tobi_3_dir(board, color, i, j, 0, -1) ) { return true; }
+		if ( check_2tobi_3_dir(board, color, i, j, -1, -1) ) { return true; }
+		if ( check_2tobi_3_dir(board, color, i, j, -1, 0) ) { return true; }
+		if ( check_2tobi_3_dir(board, color, i, j, -1, +1) ) { return true; }
+		return false;
+	}
+
+	boolean check_2tobi_3_dir(int[][] board, int color, int i, int j, int dx, int dy) {
+		// 5つの並びに自石が3つと空マス2つ
+		// 開始地点の決定
+		for ( int k = 0; k <= 4; k++ ) {
+			int startX = i + k * dx;
+			int startY = j + k * dy;
+			int myStone = 0;
+			int empty = 0;
+			// 石の個数を確認
+			for ( int l = 0; l < 5; l++ ) {
+				int x = startX + l * dx;
+				int y = startY + l * dy;
+				if ( x < 0 || y < 0 || x >= size || y >= size ) { break; }
+				if ( x == i && y == j ) { myStone++; }
+				else if ( board[x][y] == color ) { myStone++; }
+				else if ( board[x][y] == 0 ) { empty++; }
+			}
+			if ( myStone == 3 && empty == 2 ) { return true; }
+		}
+		return false;
+	}
+	//----------------------------------------------------------------
+	//  1飛び三の判定
+	//----------------------------------------------------------------
+	int check_1tobi_3_num(int[][] board, int color, int i, int j) {
+		int count = 0;
+		if ( check_1tobi_3_dir(board, color, i, j, 0, -1) ) { count++; }
+		if ( check_1tobi_3_dir(board, color, i, j, -1, -1) ) { count++; }
+		if ( check_1tobi_3_dir(board, color, i, j, -1, 0) ) { count++; }
+		if ( check_1tobi_3_dir(board, color, i, j, -1, +1) ) { count++; }
+		return count;
+	}
+
+	boolean check_1tobi_3(int[][] board, int color, int i, int j) {
+		if ( check_1tobi_3_dir(board, color, i, j, 0, -1) ) { return true; }
+		if ( check_1tobi_3_dir(board, color, i, j, -1, -1) ) { return true; }
+		if ( check_1tobi_3_dir(board, color, i, j, -1, 0) ) { return true; }
+		if ( check_1tobi_3_dir(board, color, i, j, -1, +1) ) { return true; }
+		return false;
+	}
+
+	boolean check_1tobi_3_dir(int[][] board, int color, int i, int j, int dx, int dy) {
+		// 6つの並びの両端が空マス、中の4つの並びに自石が3つと空マス1つ
+		for ( int k = 1; k <= 4; k++) {
+			int startX = i + dx * k;
+			int endX = i + dx * (k-5);
+			int startY = j + dy * k;
+			int endY = j + dy * (k-5);
+			// 両端が空マスか判定
+			if ( startX < 0 || startY < 0 || startX >= size || startY >= size ) { continue; }
+			if ( endX < 0 || endY < 0 || endX >= size || endY >= size ) { continue; }
+			if ( board[startX][startY] != 0 || board[endX][endY] != 0 ) { continue; }
+			// 中の4マスを調査
+			int myStone = 0;
+			int empty = 0;
+			for ( int l = 1; l <= 4; l++ ) {
+				int x = startX - dx * l;
+				int y = startY - dy * l;
+				if ( x == i && y == j ) { myStone++; }
+				else if ( board[x][y] == color ) { myStone++; }
+				else if ( board[x][y] == 0 ) { empty++; }
+			}
+			if ( myStone == 3 && empty == 1 ) { return true; }
+		}
+		return false;
+	}
+
+	//--------------------------------------------------------------------
+	//  自分の取石数を取得
+	//--------------------------------------------------------------------
+	public int get_mystone(GameState prev, int turn) {
+		return prev.get_pocket(turn).point;
+	}
+
+	//--------------------------------------------------------------------
+	//  相手の取石数を取得
+	//--------------------------------------------------------------------
+	public int get_enemystone(GameState prev, int turn) {
+		return prev.get_pocket(turn*-1).point;
+	}
 
 	//----------------------------------------------------------------
 	//  評価盤面の表示
@@ -531,7 +726,6 @@ public class User_s14t242_03 extends GogoCompSub {
 	//----------------------------------------------------------------
 	//  着手の決定
 	//----------------------------------------------------------------
-
 	public GameHand deside_hand() {
 		GogoHand hand = new GogoHand();
 		hand.set_hand(0, 0);  // 左上をデフォルトのマスとする
