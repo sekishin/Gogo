@@ -8,7 +8,7 @@ import sys.game.GameState;
 import sys.struct.GogoHand;
 import sys.user.GogoCompSub;
 
-public class User_s14t242_03 extends GogoCompSub {
+public class User_s14t242_04 extends GogoCompSub {
 	int TABOO = -1;	// 禁じ手の評価値
 	int NOT_ENMPTY = -2;	// 空マスではない評価値
 
@@ -16,7 +16,7 @@ public class User_s14t242_03 extends GogoCompSub {
 	//  コンストラクタ
 	//====================================================================
 
-	public User_s14t242_03(GamePlayer player) {
+	public User_s14t242_04(GamePlayer player) {
 		super(player);
 		name = "s14t242";    // プログラマが入力
 
@@ -33,59 +33,12 @@ public class User_s14t242_03 extends GogoCompSub {
 
 		//--  評価値の計算
 		calc_values(theState, theBoard);
-		//negamax(theState, role, 1);
 		// 先手後手、取石数、手数(序盤・中盤・終盤)で評価関数を変える
-		show_value();
+
 		//--  着手の決定
 		return deside_hand();
 
 	}
-
-	int negamax(GameState nowState, int mycolor, int depth) {
-		GameBoard nowBoard = nowState.board;
-		int[][] cell = nowBoard.get_cell_all();
-		int nowTurn = nowState.turn;
-		GogoHand tmpHand = new GogoHand();
-		GameState nextState;
-		int[][] eval = new int[size][size];
-		init_values(nowState, nowBoard);
-		eval = values.clone();
-		if ( depth == 1 ) { return calc_values(nowState, nowBoard); }
-		for ( int i = 0; i < size; i++ ) {
-			for ( int j =0 ; j < size; j++ ) {
-				if ( cell[i][j] != nowBoard.SPACE ) {
-					eval[i][j] = NOT_ENMPTY;
-					continue;
-				}
-				if ( check_taboo(cell, mycolor, i, j) ) {
-					eval[i][j] = TABOO;
-					continue;
-				}
-				tmpHand.set_hand(i, j);
-				nextState = nowState.test_hand(tmpHand);
-				eval[i][j] = -negamax(nextState, mycolor, depth-1);
-				System.out.print("D:" + depth + " I:" + i + " J:" + j);
-				System.out.println(" SCORE:" + eval[i][j]);
-				//if ( nowTurn != mycolor ) { eval[i][j] *= -1; }
-			}
-		}
-		values = eval.clone();
-		show_value();
-		return max(eval);
-
-	}
-
-	int max(int[][] array) {
-		int value = Integer.MIN_VALUE;
-		for ( int i = 0; i < size; i++ ) {
-			for ( int j = 0; j < size; j++ ) {
-				if ( array[i][j] == -TABOO || array[i][j] == - NOT_ENMPTY ) { continue; }
-				if ( array[i][j] > value ) { value = array[i][j]; }
-			}
-		}
-		return value;
-	}
-
 
 	//----------------------------------------------------------------
 	//  置石チェック
@@ -111,7 +64,7 @@ public class User_s14t242_03 extends GogoCompSub {
 	//  評価値の計算
 	//----------------------------------------------------------------
 
-	public int calc_values(GameState prev, GameBoard board) {
+	public void calc_values(GameState prev, GameBoard board) {
 		int [][] cell = board.get_cell_all();  // 盤面情報
 		int mycolor = prev.turn;                  // 自分の石の色
 		int now_gotton_stones_count = get_mystone(prev, mycolor);	// 取った石の個数
@@ -161,12 +114,10 @@ public class User_s14t242_03 extends GogoCompSub {
 				// 五取 40000000
 				if ( get_mystone(next_state, mycolor) >= 10 ) {
 					eval[i][j] += 40000000;
-					continue;
 				}
 				// 完五連 20000000
 				if ( check_perfect_run_5_exist(next_state, mycolor) ) {
 					eval[i][j] += 20000000;
-					continue;
 				}
 
 				//-- 敗北確定阻止(次ターン)
@@ -188,38 +139,34 @@ public class User_s14t242_03 extends GogoCompSub {
 				if ( check_44_exist(next_state, mycolor) ) {
 					eval[i][j] += 1000000;
 				}
-				// 三四 400000
-				if ( check_34_exist(next_state, mycolor) ) {
+				// 一飛び三三 400000
+				if ( check_33_exist(next_state, mycolor) ) {
 					eval[i][j] += 400000;
 				}
-
-				//-- 勝利可能性(2ターン後)
-				// 仮五連 200000
-				if ( check_run_5_exist(next_state, mycolor) ) {
+				// 三四 200000
+				if ( check_34_exist(next_state, mycolor) ) {
 					eval[i][j] += 200000;
 				}
 
-				//-- 敗北確定阻止(3ターン後)
-				// 四連阻止 100000
-				if ( check_run(cell, mycolor*-1, i, j, 4, true, true) ) {
+				//-- 勝利可能性(2ターン後)
+				// 仮五連 100000
+				if ( check_run_5_exist(next_state, mycolor) ) {
 					eval[i][j] += 100000;
 				}
-				// 三四阻止 40000
-				if ( ! check_next_enemy_34(next_state, mycolor) ) {
+
+				//-- 敗北確定阻止(3ターン後)
+				// 四連阻止 40000
+				if ( ! check_run_3_exist(next_state, mycolor*-1) ) {
 					eval[i][j] += 40000;
 				}
-				// 四四阻止 20000
-				if ( ! check_next_enemy_44(next_state, mycolor) ) {
+				// 三四阻止 20000
+				if ( ! check_next_enemy_34(next_state, mycolor) ) {
 					eval[i][j] += 20000;
 				}
-
-				//-- 勝利確定(4ターン後)
-				// 一飛び三三 10000
-				if ( check_33_exist(next_state, mycolor) ) {
+				// 四四阻止 10000
+				if ( ! check_next_enemy_44(next_state, mycolor) ) {
 					eval[i][j] += 10000;
 				}
-
-				//-- 敗北確定阻止(5ターン後)
 				// 一飛び三三阻止 4000
 				if ( ! check_next_enemy_33(next_state, mycolor) ) {
 					eval[i][j] += 4000;
@@ -229,12 +176,11 @@ public class User_s14t242_03 extends GogoCompSub {
 				//-- 敗北近傍阻止
 				// 三連阻止 2000
 				if ( check_run(cell, mycolor*-1, i, j, 3, true, true) ) {
-					eval[i][j] += 1000;
+					eval[i][j] += 2000;
 				}
 				//石取阻止 1000
-				if ( check_rem_count(next_state, mycolor) <= check_rem_count(prev, mycolor)
-				&& ! check_next_enemy_rem(next_state, mycolor, now_stolen_stones_count) ) {
-					eval[i][j] += 2000;
+				if ( check_rem_count(next_state, mycolor) <= check_rem_count(prev, mycolor) ) {
+					eval[i][j] += 1000;
 				}
 
 				//-- 勝利近傍
@@ -253,8 +199,7 @@ public class User_s14t242_03 extends GogoCompSub {
 			}
 		}
 		values = eval.clone();
-		//show_value();
-		return max(eval);
+		show_value();
 	}
 
 	//----------------------------------------------------------------
